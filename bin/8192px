@@ -1,0 +1,215 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var http = require('http');
+var mime = require('mime');
+var path = require('path');
+var ps = require('child_process');
+var ws = require('ws');
+
+var filepath = path.join('public', 'viewport.png');
+var timeout = null;
+
+if (!fs.existsSync(filepath)) {
+  ps.execSync('convert -size 2x2 -depth 8 xc:white ' + filepath);
+}
+
+var bitmap = {
+  width: Number.parseInt(ps.execSync('identify -format "%w" ' + filepath)),
+  height: Number.parseInt(ps.execSync('identify -format "%h" ' + filepath)),
+  data: Uint8Array.from(ps.execSync('convert ' + filepath + ' rgba:-')), 
+};
+
+var server = http.createServer();
+server.on('request', function(request, response) {
+  if (request.url == '/') {
+    request.url = '/index.html';
+  }
+
+  var filepath = path.join('public', request.url);
+  fs.stat(filepath, function(error, stat) {
+    if (error) {
+      response.writeHead(404, {
+        'Content-Type': 'text/plain',
+      });
+
+      return response.end('404: Not Found');
+    }
+
+    response.writeHead(200, {
+      'Content-Type': mime.lookup(filepath),
+      'Content-Length': stat.size,
+      'Etag': [stat.ino, stat.size, JSON.stringify(stat.mtime)].join('-') + '"',
+      'Last-Modified': stat.mtime,
+    });
+
+    var input = fs.createReadStream(filepath);
+    input.pipe(response);
+  });
+});
+
+var sessions = {};
+var connections = [];
+var socket = ws.createServer({ server: server });
+socket.on('connection', function(connection) {
+  var id = connection.upgradeReq.headers['x-forwarded-for'];
+  if (id == null) {
+    id = connection.upgradeReq.socket.remoteAddress;
+  }
+
+  connection.id = id;
+  connection.session = (sessions[id] = sessions[id] || {
+    wait: 0,
+  });
+
+  if (connection.session.wait > Date.now()) {
+    connection.send(Uint32Array.of(connection.session.wait))
+  }
+
+  connections.push(connection);
+  connection.on('message', function(data, flags) {
+    if (flags.binary) {
+      if (connection.session.wait > Date.now()) {
+        connection.send(Float64Array.of(connection.session.wait));
+      } else {
+        var view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+        view.setUint16(4, 1);
+        view.setUint16(6, 1);
+
+        var x = view.getUint16(0);
+        var y = view.getUint16(2);
+
+        var index = (y * bitmap.width + x) * 4;
+
+        bitmap.data[index + 0] = view.getUint8(8);
+        bitmap.data[index + 1] = view.getUint8(9);
+        bitmap.data[index + 2] = view.getUint8(10);
+        bitmap.data[index + 3] = view.getUint8(11);
+
+        connections.forEach(function(connection) {
+          connection.send(data);
+        });
+
+        var duration = Math.floor(Math.abs(
+          Math.sin((x * 0.5) + (y * 0.5)) * (8192 * Math.min(1000, connections.length))
+        ));
+
+        connection.session.wait = Math.floor(Date.now() + duration);
+        console.log(connection.session.wait);
+        connection.send(Float64Array.of(connection.session.wait));
+
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+
+        timeout = setTimeout(function() {
+          var convert = ps.spawn('convert', [
+            '-size', bitmap.width + 'x' + bitmap.height,
+            '-depth', 8,
+            'rgba:-',
+            'png:-',
+          ]);
+
+          var write = fs.createWriteStream(filepath);
+          convert.stdout.pipe(write);
+          convert.stderr.pipe(process.stderr);
+
+          convert.stdin.write(Buffer.from(bitmap.data));
+          convert.stdin.end('');
+        }, 1000)
+      };
+    }
+  });
+
+  connection.on('close', function() {
+    connections.splice(connections.indexOf(connection), 1);
+  });
+
+  var data = new Uint8Array(8 + bitmap.data.length);
+  var view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+  view.setUint16(0, 0);
+  view.setUint16(2, 0);
+  view.setUint16(4, bitmap.width);
+  view.setUint16(6, bitmap.height);
+
+  data.set(bitmap.data, 8);
+
+  connection.send(data);
+});
+
+
+setTimeout(function callback(then, cooldown, delay) {
+  var now = Date.now();
+  var time = now - then;
+
+  if (connections.length == 0) {
+    return setTimeout(callback, 0, now, cooldown, delay);
+  }
+
+  cooldown = cooldown - time;
+  if (cooldown > 0) {
+    return setTimeout(callback, 0, now, cooldown, delay);
+  }
+
+  cooldown = cooldown + delay;
+
+  var width = bitmap.width + 2;
+  var height = bitmap.width + 2;
+  var pixels = new Uint8Array(width * height * 4);
+
+  for (var y = 1; y < height- 1; y++) {
+    for (var x = 1; x < width - 1; x++) {
+      var a = (y * width + x) * 4;
+      var b = ((y - 1) * bitmap.width + (x - 1)) * 4;
+
+      pixels[a + 0] = bitmap.data[b + 0];
+      pixels[a + 1] = bitmap.data[b + 1];
+      pixels[a + 2] = bitmap.data[b + 2];
+      pixels[a + 3] = bitmap.data[b + 3];
+    }
+  }
+
+  bitmap.width = width;
+  bitmap.height = height;
+  bitmap.data = pixels;
+
+  var data = new Uint8Array(bitmap.data.length + 8);
+  var view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+  view.setUint16(0, 0);
+  view.setUint16(2, 0);
+  view.setUint16(4, bitmap.width);
+  view.setUint16(6, bitmap.height);
+
+  data.set(bitmap.data, 8);
+
+  connections.forEach(function(connection) {
+    connection.send(data);
+  });
+
+  if (timeout) {
+    clearTimeout(timeout);
+  }
+
+  timeout = setTimeout(function() {
+    var convert = ps.spawn('convert', [
+      '-size', bitmap.width + 'x' + bitmap.height,
+      '-depth', 8,
+      'rgba:-',
+      'png:-',
+    ]);
+
+    var write = fs.createWriteStream(filepath);
+    convert.stdout.pipe(write);
+    convert.stderr.pipe(process.stderr);
+
+    convert.stdin.write(Buffer.from(bitmap.data));
+    convert.stdin.end('');
+  }, 60 * 1000);
+
+  setTimeout(callback, 0, now, cooldown, delay);
+}, 0, Date.now(), 8192 * 1000, 8192 * 1000);
+
+server.listen(process.env['PORT'] || 8192);

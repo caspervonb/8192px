@@ -1,0 +1,16 @@
+{
+  "name": "8196px",
+  "version": "0.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "mime": "^1.3.4",
+    "ws": "^1.1.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node bin/8192px"
+  },
+  "author": "Casper Beyer",
+  "license": "MIT"
+}

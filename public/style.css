@@ -89,6 +89,7 @@
 
 .adsbygoogle {
   display: block;
+  text-align: center;
 }
 
 @keyframes fade-out {

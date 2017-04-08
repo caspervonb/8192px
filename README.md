@@ -1,4 +1,4 @@
-# 8196px - A collaborative pixel canvas
+# 8196px - A collaborative pixel canvas that grows over time
 
 8192px is a little pixel art experiment for the web where users have to work
 together to fill out the canvas as the timeouts in-between being allowed to

@@ -11,6 +11,18 @@ The rules are quite simple:
 - After placing a pixel, a user must wait a deterministic random amount from 0
   to 8192, the scale of the value depends on the number of active users.
 
+Mouse and keyboard controls:
+
+- Click and drag to pan.
+- Shift/Control click to zoom.
+- Double click to place a pixel.
+
+Touch controls:
+
+- Drag to pan
+- Pinch to zoom.
+- Double tap to place a pixel.
+
 You can see it in action at [http://8192px.co](http://8192px.co), the server is
 a droplet hosted over at [DigitalOcean](https://m.do.co/c/77e38b5a6b3e).
 

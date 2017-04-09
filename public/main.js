@@ -190,7 +190,7 @@ viewport.onmousedown = function(event) {
   };
 
   viewport.onwheel = function wheel(event) {
-    viewport.scale = Math.min(Math.max(viewport.scale + event.deltaY, 1), 100);
+    viewport.scale = Math.min(Math.max(viewport.scale + event.deltaY * -0.1, 1), 100);
   };
 
   viewport.onmousedown = function(event) {

@@ -198,6 +198,8 @@ viewport.onmousedown = function(event) {
 
     screenX = event.screenX;
     screenY = event.screenY;
+
+    event.preventDefault();
   };
 
   viewport.onmousemove = function mousemove(event) {

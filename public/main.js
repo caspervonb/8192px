@@ -163,6 +163,8 @@ viewport.ontouchstart = function(event) {
   };
 
   viewport.ontouchend = function touchend(event) {
+    screenX = event.touches[0].screenX;
+    screenY = event.touches[0].screenY;
   };
 
   return viewport.ontouchstart(event);

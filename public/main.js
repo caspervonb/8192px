@@ -64,7 +64,7 @@ viewport.tabIndex = 0;
 viewport.x = 0;
 viewport.y = 0;
 
-viewport.scale = 25;
+viewport.scale = 10;
 
 viewport.color = colors.black;
 viewport.tileX = 0;

@@ -95,7 +95,6 @@ socket.on('connection', function(connection) {
         var duration = Math.abs(factor) * 8192 * Math.min(1000, connections.length);
 
         connection.session.wait = Date.now() + Math.floor(duration);
-        console.log(connection.session.wait);
         connection.send(Float64Array.of(connection.session.wait));
 
         if (timeout) {

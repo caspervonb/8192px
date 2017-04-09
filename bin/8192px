@@ -5,6 +5,7 @@ var http = require('http');
 var mime = require('mime');
 var path = require('path');
 var ps = require('child_process');
+var url = require('url');
 var ws = require('ws');
 
 var filepath = path.join('public', 'viewport.png');
@@ -22,11 +23,13 @@ var bitmap = {
 
 var server = http.createServer();
 server.on('request', function(request, response) {
-  if (request.url == '/') {
-    request.url = '/index.html';
+  var uri = url.parse(request.url);
+  var pathname = uri.pathname;
+  if (pathname == '/') {
+    pathname = '/index.html';
   }
 
-  var filepath = path.join('public', request.url);
+  var filepath = path.join('public', pathname);
   fs.stat(filepath, function(error, stat) {
     if (error) {
       response.writeHead(404, {

@@ -308,6 +308,7 @@ socket.onopen = function(event) {
       'Use your imagination, be creative and have fun.',
       'Try to work with what is already on the canvas.',
       'The palette will colors change every now and then.',
+      '8192px is open source, check it out on <a href="https://github.com/8192px/8192px">GitHub</a>',
     ];
 
     if (/phone|pad|tablet|droid/i.test(navigator.userAgent)) {

@@ -91,11 +91,10 @@ socket.on('connection', function(connection) {
           connection.send(data);
         });
 
-        var duration = Math.floor(Math.abs(
-          Math.sin((x * 0.5) + (y * 0.5)) * (8192 * Math.min(1000, connections.length))
-        ));
+        var factor = Math.sin((x * 0.5) + (y * 0.5));
+        var duration = Math.abs(factor) * 8192 * Math.min(1000, connections.length);
 
-        connection.session.wait = Math.floor(Date.now() + duration);
+        connection.session.wait = Date.now() + Math.floor(duration);
         console.log(connection.session.wait);
         connection.send(Float64Array.of(connection.session.wait));
 

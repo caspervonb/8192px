@@ -19,6 +19,15 @@ h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};
 ga('create', 'UA-96920530-1', 'auto');
 ga('require', 'GTM-K45NNPN');
 ga('send', 'pageview');
+
+document.addEventListener('click', function(event) {
+  ga('send', 'event', 'Page click', 'track');
+}, true);
+
+document.addEventListener('dblclick', function(event) {
+  ga('send', 'event', 'Page double click', 'track');
+}, true);
+
     </script>
   </head>
   <body id="container" class="container">

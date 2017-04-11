@@ -33,6 +33,7 @@
   left: 0;
   display: block;
   z-index: -1;
+  image-rendering: pixelated;
 }
 
 .palette {

@@ -161,10 +161,10 @@ setTimeout(function callback(then, cooldown, delay) {
   var height = bitmap.height + count;
   var pixels = new Uint8Array(width * height * 4);
 
-  for (var y = count / 2; y < height - count / 2; y++) {
-    for (var x = count / 2; x < width - count / 2; x++) {
+  for (var y = count / 2; y < height - (count / 2); y++) {
+    for (var x = count / 2; x < width - (count / 2); x++) {
       var a = (y * width + x) * 4;
-      var b = ((y - 1) * bitmap.width + (x - 1)) * 4;
+      var b = ((y - (count / 2)) * bitmap.width + (x - (count / 2))) * 4;
 
       pixels[a + 0] = bitmap.data[b + 0];
       pixels[a + 1] = bitmap.data[b + 1];

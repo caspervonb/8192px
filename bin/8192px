@@ -95,7 +95,7 @@ socket.on('connection', function(connection) {
         });
 
         var factor = Math.sin((x * 0.5) + (y * 0.5));
-        var duration = Math.abs(factor) * 8192 * Math.min(1000, connections.length / 4);
+        var duration = Math.abs(factor) * 8192 * Math.min(100, connections.length / 100);
 
         connection.session.wait = Date.now() + Math.floor(duration);
         connection.send(Float64Array.of(connection.session.wait));

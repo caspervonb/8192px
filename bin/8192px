@@ -77,8 +77,12 @@ socket.on('connection', function(connection) {
       } else {
         var view = new DataView(data.buffer, data.byteOffset, data.byteLength);
 
-        view.setUint16(4, 1);
-        view.setUint16(6, 1);
+        var width = view.getUint16(4);
+        var height = view.getUint16(6);
+
+        if (width > 1 || height > 1) {
+          return;
+        }
 
         var x = view.getUint16(0);
         var y = view.getUint16(2);

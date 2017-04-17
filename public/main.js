@@ -74,7 +74,7 @@ viewport.canvas = document.createElement('canvas');
 viewport.canvas.width = 2;
 viewport.canvas.height = 2;
 
-viewport.ondblclick = function dblclick(event) {
+window.ondblclick = function dblclick(event) {
   if (event.button == 0) {
     if (viewport.timeout == null) {
       var x = Math.floor(
@@ -118,11 +118,11 @@ viewport.ondblclick = function dblclick(event) {
   }
 };
 
-viewport.ontouchstart = function(event) {
+window.ontouchstart = function(event) {
   var screenX, screenY;
   var distance;
 
-  viewport.ontouchstart = function touchstart(event) {
+  window.ontouchstart = function touchstart(event) {
     if (event.touches.length == 1) {
       screenX = event.touches[0].screenX;
       screenY = event.touches[0].screenY;
@@ -136,7 +136,7 @@ viewport.ontouchstart = function(event) {
     }
   };
 
-  viewport.ontouchmove = function touchmove(event) {
+  window.ontouchmove = function touchmove(event) {
     if (event.touches.length == 1) {
       var touch = event.touches[0];
       viewport.x = viewport.x + (event.touches[0].screenX - screenX);
@@ -162,20 +162,20 @@ viewport.ontouchstart = function(event) {
     event.preventDefault();
   };
 
-  viewport.ontouchend = function touchend(event) {
+  window.ontouchend = function touchend(event) {
     screenX = event.touches[0].screenX;
     screenY = event.touches[0].screenY;
   };
 
-  return viewport.ontouchstart(event);
+  return window.ontouchstart(event);
 
 };
 
-viewport.onmousedown = function(event) {
+window.onmousedown = function(event) {
   var buttons = {};
   var screenX, screenY;
 
-  viewport.onclick = function click(event) {
+  window.onclick = function click(event) {
     if (event.button == 0) {
       if (event.altKey || event.ctrlKey) {
         viewport.scale = Math.max(1, viewport.scale - 10);
@@ -191,14 +191,14 @@ viewport.onmousedown = function(event) {
     }
   };
 
-  viewport.onwheel = function wheel(event) {
+  window.onwheel = function wheel(event) {
     viewport.scale = Math.min(Math.max(viewport.scale + event.deltaY * -0.1, 1), 100);
     requestAnimationFrame(function() {
       viewport.render();
     });
   };
 
-  viewport.onmousedown = function(event) {
+  window.onmousedown = function(event) {
     buttons[event.button] = true;
 
     screenX = event.screenX;
@@ -207,7 +207,7 @@ viewport.onmousedown = function(event) {
     event.preventDefault();
   };
 
-  viewport.onmousemove = function mousemove(event) {
+  window.onmousemove = function mousemove(event) {
     if (viewport.style.cursor == 'move') {
       viewport.style.cursor = '';
     }
@@ -236,7 +236,7 @@ viewport.onmousedown = function(event) {
     screenY = event.screenY;
   };
 
-  viewport.onmouseup = function mouseup(event) {
+  window.onmouseup = function mouseup(event) {
     if (event.button == 0) {
       if (viewport.style.cursor == 'move') {
         viewport.style.cursor = '';
@@ -246,13 +246,13 @@ viewport.onmousedown = function(event) {
     delete buttons[event.button];
   };
 
-  viewport.onmouseout = function(event) {
+  window.onmouseout = function(event) {
     for (var key in buttons) {
       delete buttons[key];
     }
   };
 
-  return viewport.onmousedown(event);
+  return window.onmousedown(event);
 };
 
 viewport.render = function render() {

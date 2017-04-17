@@ -76,6 +76,10 @@ viewport.canvas.height = 2;
 
 window.ondblclick = function dblclick(event) {
   if (event.button == 0) {
+    if (event.shiftKey || event.ctrlKey || event.altKey) {
+      return event.preventDefault();
+    }
+
     if (viewport.timeout == null) {
       var x = Math.floor(
         (event.offsetX - viewport.x - viewport.width / 2) / viewport.scale

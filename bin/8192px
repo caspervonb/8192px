@@ -9,8 +9,6 @@ var url = require('url');
 var ws = require('ws');
 
 var filepath = path.join('public', 'viewport.png');
-var timeout = null;
-
 if (!fs.existsSync(filepath)) {
   ps.execSync('convert -size 2x2 -depth 8 xc:white ' + filepath);
 }
@@ -103,26 +101,6 @@ socket.on('connection', function(connection) {
 
         connection.session.wait = Date.now() + Math.max(8192, Math.floor(duration));
         connection.send(Float64Array.of(connection.session.wait));
-
-        if (timeout) {
-          clearTimeout(timeout);
-        }
-
-        timeout = setTimeout(function() {
-          var convert = ps.spawn('convert', [
-            '-size', bitmap.width + 'x' + bitmap.height,
-            '-depth', 8,
-            'rgba:-',
-            'png:-',
-          ]);
-
-          var write = fs.createWriteStream(filepath);
-          convert.stdout.pipe(write);
-          convert.stderr.pipe(process.stderr);
-
-          convert.stdin.write(Buffer.from(bitmap.data));
-          convert.stdin.end('');
-        }, 60 * 1000)
       };
     }
   });
@@ -144,78 +122,70 @@ socket.on('connection', function(connection) {
   connection.send(data);
 });
 
-
 setTimeout(function callback(then, cooldown, delay) {
   var now = Date.now();
   var time = now - then;
 
-  if (connections.length == 0) {
-    return setTimeout(callback, 0, now, cooldown, delay);
+  if (connections.length > 0) {
+    cooldown = cooldown - time;
   }
 
-  cooldown = cooldown - time;
-  if (cooldown > 0) {
-    return setTimeout(callback, 0, now, cooldown, delay);
-  }
+  if (cooldown <= 0) {
+    cooldown = cooldown + delay;
 
-  cooldown = cooldown + delay;
+    var count = 8;
+    var width = bitmap.width + count;
+    var height = bitmap.height + count;
+    var pixels = new Uint8Array(width * height * 4);
 
-  var count = 8;
-  var width = bitmap.width + count;
-  var height = bitmap.height + count;
-  var pixels = new Uint8Array(width * height * 4);
+    for (var y = count / 2; y < height - (count / 2); y++) {
+      for (var x = count / 2; x < width - (count / 2); x++) {
+        var a = (y * width + x) * 4;
+        var b = ((y - (count / 2)) * bitmap.width + (x - (count / 2))) * 4;
 
-  for (var y = count / 2; y < height - (count / 2); y++) {
-    for (var x = count / 2; x < width - (count / 2); x++) {
-      var a = (y * width + x) * 4;
-      var b = ((y - (count / 2)) * bitmap.width + (x - (count / 2))) * 4;
-
-      pixels[a + 0] = bitmap.data[b + 0];
-      pixels[a + 1] = bitmap.data[b + 1];
-      pixels[a + 2] = bitmap.data[b + 2];
-      pixels[a + 3] = bitmap.data[b + 3];
+        pixels[a + 0] = bitmap.data[b + 0];
+        pixels[a + 1] = bitmap.data[b + 1];
+        pixels[a + 2] = bitmap.data[b + 2];
+        pixels[a + 3] = bitmap.data[b + 3];
+      }
     }
+
+    bitmap.width = width;
+    bitmap.height = height;
+    bitmap.data = pixels;
+
+    var data = new Uint8Array(bitmap.data.length + 8);
+    var view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+    view.setUint16(0, 0);
+    view.setUint16(2, 0);
+    view.setUint16(4, bitmap.width);
+    view.setUint16(6, bitmap.height);
+
+    data.set(bitmap.data, 8);
+
+    connections.forEach(function(connection) {
+      connection.send(data);
+    });
   }
 
-  bitmap.width = width;
-  bitmap.height = height;
-  bitmap.data = pixels;
+  var convert = ps.spawn('convert', [
+    '-size', bitmap.width + 'x' + bitmap.height,
+    '-depth', 8,
+    'rgba:-',
+    'png:-',
+  ]);
 
-  var data = new Uint8Array(bitmap.data.length + 8);
-  var view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  var write = fs.createWriteStream(filepath);
+  convert.stdout.pipe(write);
+  convert.stderr.pipe(process.stderr);
 
-  view.setUint16(0, 0);
-  view.setUint16(2, 0);
-  view.setUint16(4, bitmap.width);
-  view.setUint16(6, bitmap.height);
+  convert.stdin.write(Buffer.from(bitmap.data));
+  convert.stdin.end('');
 
-  data.set(bitmap.data, 8);
-
-  connections.forEach(function(connection) {
-    connection.send(data);
+  convert.on('close', function() {
+    setTimeout(callback, 300 * 1000, now, cooldown, delay);
   });
-
-  if (timeout) {
-    clearTimeout(timeout);
-  }
-
-  timeout = setTimeout(function() {
-    var convert = ps.spawn('convert', [
-      '-size', bitmap.width + 'x' + bitmap.height,
-      '-depth', 8,
-      'rgba:-',
-      'png:-',
-    ]);
-
-    var write = fs.createWriteStream(filepath);
-    convert.stdout.pipe(write);
-    convert.stderr.pipe(process.stderr);
-
-    convert.stdin.write(Buffer.from(bitmap.data));
-    convert.stdin.end('');
-  }, 60 * 1000);
-
-  setTimeout(callback, 0, now, cooldown, delay);
 }, 0, Date.now(), 8192 * 1000, 8192 * 1000);
 
 server.listen(process.env['PORT'] || 8192);

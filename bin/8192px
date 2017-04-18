@@ -64,7 +64,11 @@ socket.on('connection', function(connection) {
   });
 
   if (connection.session.wait > Date.now()) {
-    connection.send(Uint32Array.of(connection.session.wait))
+    try {
+      connection.send(Uint32Array.of(connection.session.wait))
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   connections.push(connection);
@@ -93,7 +97,11 @@ socket.on('connection', function(connection) {
         bitmap.data[index + 3] = view.getUint8(11);
 
         connections.forEach(function(connection) {
-          connection.send(data);
+          try {
+            connection.send(data);
+          } catch (error) {
+            console.error(error);
+          }
         });
 
         var factor = Math.sin((x * 0.5) + (y * 0.5));
@@ -119,7 +127,11 @@ socket.on('connection', function(connection) {
 
   data.set(bitmap.data, 8);
 
-  connection.send(data);
+  try {
+    connection.send(data);
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 setTimeout(function callback(then, cooldown, delay) {
@@ -127,7 +139,7 @@ setTimeout(function callback(then, cooldown, delay) {
   var time = now - then;
 
   if (connections.length > 0) {
-    cooldown = cooldown - time;
+    cooldown -= time;
   }
 
   if (cooldown <= 0) {
@@ -165,7 +177,11 @@ setTimeout(function callback(then, cooldown, delay) {
     data.set(bitmap.data, 8);
 
     connections.forEach(function(connection) {
-      connection.send(data);
+      try {
+        connection.send(data);
+      } catch(error) {
+        console.error(error);
+      }
     });
   }
 

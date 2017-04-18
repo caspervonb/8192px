@@ -182,9 +182,9 @@ window.onmousedown = function(event) {
   window.onclick = function click(event) {
     if (event.button == 0) {
       if (event.altKey || event.ctrlKey) {
-        viewport.scale = Math.max(1, viewport.scale - 10);
+        viewport.scale = Math.max(1, viewport.scale - 5);
       } else if (event.shiftKey) {
-        viewport.scale = Math.min(100, viewport.scale + 10);
+        viewport.scale = Math.min(100, viewport.scale + 5);
       }
 
       requestAnimationFrame(function() {

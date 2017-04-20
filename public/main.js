@@ -302,48 +302,47 @@ socket.onopen = function(event) {
   var hint = document.createElement('p');
   hint.id = 'hint';
 
-  var hints = localStorage.getItem('hints');
-  if (hints) {
-    hints = hints.split('\n');
+  var hints = [
+    'The cooldown after placing a pixel can be up to 8192 seconds long.',
+    'The canvas will expand every 8192 seconds.',
+    'Use your imagination, be creative and have fun.',
+    'Try to work with what is already on the canvas.',
+    'The palette will colors change every now and then.',
+    '8192px is open source, check it out on <a href="https://github.com/8192px/8192px">GitHub</a>',
+  ];
+
+  if (/phone|pad|tablet|droid/i.test(navigator.userAgent)) {
+    hints = [
+      'Double tap to place a pixel.',
+      'Pinch to zoom in and out.',
+    ].concat(hints);
   } else {
     hints = [
-      'The cooldown after placing a pixel can be up to 8192 seconds long.',
-      'The canvas will expand every 8192 seconds.',
-      'Use your imagination, be creative and have fun.',
-      'Try to work with what is already on the canvas.',
-      'The palette will colors change every now and then.',
-      '8192px is open source, check it out on <a href="https://github.com/8192px/8192px">GitHub</a>',
-    ];
+      'Double click to place a pixel.',
+      'Click a color swatch in the palette to switch colors.',
+      'Click while holding the shift key to zoom in.',
+      'Click and drag to move the canvas.',
+      'Click while holding the control key to zoom out.',
+    ].concat(hints);
+  }
 
-    if (/phone|pad|tablet|droid/i.test(navigator.userAgent)) {
-      hints = [
-        'Double tap to place a pixel.',
-        'Pinch to zoom in and out.',
-      ].concat(hints);
-    } else {
-      hints = [
-        'Double click to place a pixel.',
-        'Click a color swatch in the palette to switch colors.',
-        'Click while holding the shift key to zoom in.',
-        'Click and drag to move the canvas.',
-        'Click while holding the control key to zoom out.',
-      ].concat(hints);
-    }
 
+  hint.className = 'hint fade-out';
+
+  setTimeout(function show() {
     hints = hints.sort(function() {
       return Math.random() * 0.5;
     });
-  }
 
-  hint.className = 'hint fade-out';
-  hint.innerHTML = hints.shift();
+    hint.innerHTML = hints[0];
+    content.appendChild(hint);
 
-  content.appendChild(hint);
-  setTimeout(function() {
-    content.removeChild(hint);
-  }, 15 * 1000);
+    setTimeout(function hide() {
+      content.removeChild(hint);
+    }, 60 * 1000);
 
-  localStorage.setItem('hints', hints.join('\n'));
+    setTimeout(show, 300 * 1000);
+  }, 0);
 };
 
 socket.onmessage = function(event) {

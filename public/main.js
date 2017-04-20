@@ -307,6 +307,7 @@ socket.onopen = function(event) {
     'Check out 8192px on <a href="https://reddit.com/8192px>Reddit</a>"',
     'The canvas will expand every 8192 seconds.',
     'Use your imagination, be creative and have fun.',
+    'Join the <a href="https://discord.gg/XdN2CHk">Discord</a> chat server',
     'Try to work with what is already on the canvas.',
     'The palette will colors change every now and then.',
     '8192px is open source, check it out on <a href="https://github.com/8192px/8192px">GitHub</a>',

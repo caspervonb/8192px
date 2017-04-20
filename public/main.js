@@ -310,6 +310,7 @@ socket.onopen = function(event) {
     'Join the <a href="https://discord.gg/XdN2CHk">Discord</a> chat server',
     'Try to work with what is already on the canvas.',
     'The palette will colors change every now and then.',
+    '8192px is hosted with <a href="https://m.do.co/c/77e38b5a6b3e">DigitalOcean</a>, they are freaking awesome.',
     '8192px is open source, check it out on <a href="https://github.com/8192px/8192px">GitHub</a>',
   ];
 

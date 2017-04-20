@@ -304,6 +304,7 @@ socket.onopen = function(event) {
 
   var hints = [
     'The cooldown after placing a pixel can be up to 8192 seconds long.',
+    'Check out 8192px on <a href="https://reddit.com/8192px>Reddit</a>"',
     'The canvas will expand every 8192 seconds.',
     'Use your imagination, be creative and have fun.',
     'Try to work with what is already on the canvas.',

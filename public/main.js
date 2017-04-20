@@ -334,7 +334,7 @@ socket.onopen = function(event) {
 
   setTimeout(function show() {
     hints = hints.sort(function() {
-      return Math.random() * 0.5;
+      return 0.5 - Math.random();
     });
 
     hint.innerHTML = hints[0];

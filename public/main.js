@@ -329,16 +329,15 @@ socket.onopen = function(event) {
     ].concat(hints);
   }
 
-
   hint.className = 'hint fade-out';
 
   setTimeout(function show() {
+    hint.innerHTML = hints[0];
+    content.appendChild(hint);
+
     hints = hints.sort(function() {
       return 0.5 - Math.random();
     });
-
-    hint.innerHTML = hints[0];
-    content.appendChild(hint);
 
     setTimeout(function hide() {
       content.removeChild(hint);

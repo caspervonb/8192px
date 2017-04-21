@@ -111,6 +111,10 @@ socket.on('connection', function(connection) {
         var x = view.getUint16(0);
         var y = view.getUint16(2);
 
+        if (x > bitmap.width || y > bitmap.height) {
+          return;
+        }
+
         var valid = colors.some(function(color) {
           return color[0] == view.getUint8(8) && color[1] == view.getUint8(9)
             && color[2] == view.getUint8(10) && color[3] == view.getUint8(11);

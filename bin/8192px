@@ -13,6 +13,28 @@ if (!fs.existsSync(filepath)) {
   ps.execSync('convert -size 2x2 -depth 8 xc:white ' + filepath);
 }
 
+var colors = [
+  [255, 255, 255, 255],
+  [211, 211, 211, 255],
+  [169, 169, 169, 255],
+  [0, 0, 0, 255],
+  [255, 192, 203, 255],
+  [255, 0, 0, 255],
+  [255, 215, 0, 255],
+  [165, 42, 42, 255],
+  [255, 255, 0, 255],
+  [144, 238, 144, 255],
+  [0, 128, 0, 255],
+  [0, 255, 255, 255],
+  [173, 216, 230, 255],
+  [0, 0, 255, 255],
+  [255, 105, 180, 255],
+  [128, 0, 128, 255],
+  [255, 140, 0, 255],
+  [220, 20, 60, 255],
+];
+
+
 var bitmap = {
   width: Number.parseInt(ps.execSync('identify -format "%w" ' + filepath)),
   height: Number.parseInt(ps.execSync('identify -format "%h" ' + filepath)),
@@ -89,20 +111,27 @@ socket.on('connection', function(connection) {
         var x = view.getUint16(0);
         var y = view.getUint16(2);
 
-        var index = (y * bitmap.width + x) * 4;
-
-        bitmap.data[index + 0] = view.getUint8(8);
-        bitmap.data[index + 1] = view.getUint8(9);
-        bitmap.data[index + 2] = view.getUint8(10);
-        bitmap.data[index + 3] = view.getUint8(11);
-
-        connections.forEach(function(connection) {
-          try {
-            connection.send(data);
-          } catch (error) {
-            console.error(error);
-          }
+        var valid = colors.some(function(color) {
+          return color[0] == view.getUint8(8) && color[1] == view.getUint8(9)
+            && color[2] == view.getUint8(10) && color[3] == view.getUint8(11);
         });
+
+        if (valid) {
+          var index = (y * bitmap.width + x) * 4;
+
+          bitmap.data[index + 0] = view.getUint8(8);
+          bitmap.data[index + 1] = view.getUint8(9);
+          bitmap.data[index + 2] = view.getUint8(10);
+          bitmap.data[index + 3] = view.getUint8(11);
+
+          connections.forEach(function(connection) {
+            try {
+              connection.send(data);
+            } catch (error) {
+              console.error(error);
+            }
+          });
+        }
 
         var factor = Math.sin((x * 0.5) + (y * 0.5));
         var duration = Math.abs(factor) * 8192 * Math.min(100, connections.length / 100);

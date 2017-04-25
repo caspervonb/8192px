@@ -152,9 +152,9 @@ window.ontouchstart = function(event) {
       var y = event.touches[0].screenY - event.touches[1].screenY;
 
       var value = Math.sqrt(x * x + y * y);
-      var delta = value - distance;
+      var delta = (value - distance) * 0.25;
 
-      viewport.scale = Math.min(Math.max(viewport.scale + (delta * 0.25), 1), 100);
+      viewport.scale = Math.min(Math.max(viewport.scale + delta, 1), 100);
       distance = value;
     }
 
@@ -180,10 +180,11 @@ window.onmousedown = function(event) {
 
   window.onclick = function click(event) {
     if (event.button == 0) {
+      var delta = viewport.scale <= 5 ? 1 : 5;
       if (event.altKey || event.ctrlKey) {
-        viewport.scale = Math.max(5, viewport.scale - 5);
+        viewport.scale = Math.max(1, viewport.scale - delta);
       } else if (event.shiftKey) {
-        viewport.scale = Math.min(100, viewport.scale + 5);
+        viewport.scale = Math.min(100, viewport.scale + delta);
       }
 
       requestAnimationFrame(function() {
@@ -195,7 +196,8 @@ window.onmousedown = function(event) {
   };
 
   window.onwheel = function wheel(event) {
-    viewport.scale = Math.min(Math.max(viewport.scale + event.deltaY * -0.1, 1), 100);
+    var delta = (viewport.scale <= 5 ? 1 : 5) * Math.sign(event.deltaY);
+    viewport.scale = Math.min(Math.max(viewport.scale + delta, 1), 100);
     requestAnimationFrame(function() {
       viewport.render();
     });

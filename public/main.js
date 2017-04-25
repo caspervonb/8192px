@@ -81,15 +81,14 @@ window.ondblclick = function dblclick(event) {
     }
 
     if (viewport.timeout == null) {
+      var canvas = viewport.canvas;
       var x = Math.floor(
-        (event.offsetX - viewport.x - viewport.width / 2) / viewport.scale
-      ) + viewport.canvas.width / 2;
+        (event.offsetX - viewport.width / 2) / viewport.scale + canvas.width / 2 - viewport.x
+      );
 
       var y = Math.floor(
-        (event.offsetY - viewport.y - viewport.height / 2) / viewport.scale
-      ) + viewport.canvas.height / 2;
-
-      var canvas = viewport.canvas;
+        (event.offsetY - viewport.height / 2) / viewport.scale + canvas.height / 2 - viewport.y
+      );
 
       if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) {
         return event.preventDefault();
@@ -143,8 +142,8 @@ window.ontouchstart = function(event) {
   window.ontouchmove = function touchmove(event) {
     if (event.touches.length == 1) {
       var touch = event.touches[0];
-      viewport.x = viewport.x + (event.touches[0].screenX - screenX);
-      viewport.y = viewport.y + (event.touches[0].screenY - screenY);
+      viewport.x += (event.touches[0].screenX - screenX) / viewport.scale;
+      viewport.y += (event.touches[0].screenY - screenY) / viewport.scale;
 
       screenX = event.touches[0].screenX;
       screenY = event.touches[0].screenY;
@@ -218,16 +217,17 @@ window.onmousedown = function(event) {
 
     if (buttons[0]) {
       viewport.style.cursor = 'move';
-      viewport.x = viewport.x + (event.screenX - (screenX || event.screenX));
-      viewport.y = viewport.y + (event.screenY - (screenY || event.screenY));
+      viewport.x += (event.screenX - (screenX || event.screenX)) / viewport.scale;
+      viewport.y += (event.screenY - (screenY || event.screenY)) / viewport.scale;
     }
 
+    var canvas = viewport.canvas;
     viewport.tileX = Math.floor(
-      (event.offsetX - viewport.x - viewport.width / 2) / viewport.scale
+      (event.offsetX - viewport.width / 2) / viewport.scale + canvas.width / 2 - viewport.x
     );
 
     viewport.tileY = Math.floor(
-      (event.offsetY - viewport.y - viewport.height / 2) / viewport.scale
+      (event.offsetY - viewport.height / 2) / viewport.scale + canvas.height / 2 - viewport.y
     );
 
     requestAnimationFrame(function() {
@@ -266,21 +266,20 @@ viewport.render = function render() {
   context.clearRect(0, 0, viewport.width, viewport.height);
 
   context.translate(viewport.width / 2, viewport.height / 2);
-  context.translate(viewport.x, viewport.y);
   context.scale(viewport.scale, viewport.scale);
+  context.translate(viewport.x, viewport.y);
 
   var canvas = viewport.canvas;
+  context.translate(-canvas.width / 2, -canvas.height / 2);
 
   context.fillStyle = 'white';
-  context.fillRect(canvas.width * -0.5, canvas.height * -0.5, canvas.width, canvas.height);
+  context.fillRect(0, 0, canvas.width, canvas.height);
 
   context.imageSmoothingEnabled = false;
-  context.drawImage(canvas, canvas.width * -0.5, canvas.height * -0.5);
+  context.drawImage(canvas, 0, 0);
 
-  if (typeof viewport.tileX == 'number' && typeof viewport.tileY == 'number') {
-    context.fillStyle = 'rgba(' + viewport.color.join(',') + ')';
-    context.fillRect(viewport.tileX, viewport.tileY, 1, 1);
-  }
+  context.fillStyle = 'rgba(' + viewport.color.join(',') + ')';
+  context.fillRect(viewport.tileX, viewport.tileY, 1, 1);
 
   context.restore();
 };

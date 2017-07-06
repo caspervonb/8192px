@@ -104,7 +104,7 @@ socket.on('connection', function(connection) {
         var width = view.getUint16(4);
         var height = view.getUint16(6);
 
-        if (width > 1 || height > 1) {
+        if (width != 1 || height != 1) {
           return;
         }
 
